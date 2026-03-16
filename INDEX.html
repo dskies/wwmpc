@@ -1406,57 +1406,21 @@ function renderNuclear() {
 // ══════════════════════════════════════════════════════════════
 // 11. WORLD BANK
 // ══════════════════════════════════════════════════════════════
-// ═════════════════════════════════════════════════════════════=
-// THEME / WALL.SVG HANDLING
-// ═════════════════════════════════════════════════════════════=
-const WALL_SVG_URL = 'wall.svg';
-let _wallTpl = null;
-async function loadWallTemplate() {
-  if (_wallTpl !== null) return _wallTpl;
-  try {
-    const r = await fetch(WALL_SVG_URL + '?t=' + Date.now());
-    _wallTpl = await r.text();
-  } catch (e) {
-    console.warn('Could not load wall.svg', e);
-    _wallTpl = null;
-  }
-  return _wallTpl;
-}
-
-function applyWallSvg(theme) {
-  const isDark = theme === 'dark';
-  const bg = isDark ? '#05102a' : '#ffffff';
-  const dot = isDark ? '#ef4444' : '#1e40af';
-  loadWallTemplate().then(tpl => {
-    if (!tpl) {
-      // fallback: keep existing CSS background color
-      document.body.style.background = (isDark ? getComputedStyle(document.documentElement).getPropertyValue('--bg') : bg) + ' center center / cover fixed no-repeat';
-      return;
-    }
-    const svg = tpl.replace(/%%BG%%/g, bg).replace(/%%DOT%%/g, dot);
-    const data = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-    const url = 'url("' + data + '")';
-    // Apply to both html and body to ensure full-viewport coverage and fixed attachment
-    [document.documentElement, document.body].forEach(el => {
-      el.style.backgroundImage = url;
-      el.style.backgroundColor = bg;
-      el.style.backgroundPosition = 'center center';
-      el.style.backgroundRepeat = 'no-repeat';
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundAttachment = 'fixed';
-    });
-  });
-}
-
+// THEME HANDLING (no external SVG)
+// setTheme only toggles CSS variables and background color now.
 function setTheme(theme) {
   if (theme === 'dark') {
     document.documentElement.style.setProperty('--bg', '#050b18');
     document.documentElement.style.setProperty('--card', '#0f172a');
+    // apply dark background color to html/body
+    document.documentElement.style.background = '#050b18';
+    document.body.style.background = '#050b18';
   } else {
     document.documentElement.style.setProperty('--bg', '#ffffff');
     document.documentElement.style.setProperty('--card', '#f8fafc');
+    document.documentElement.style.background = '#ffffff';
+    document.body.style.background = '#ffffff';
   }
-  applyWallSvg(theme);
   try { localStorage.setItem('wwmpc_theme', theme); } catch(e){}
 }
 
