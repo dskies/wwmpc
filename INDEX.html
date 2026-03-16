@@ -456,20 +456,16 @@
       appearance: none;
     }
     .theme-select {
-      background: var(--card2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: .72rem;
-      cursor: pointer;
-      min-width: 110px;
-      outline: none;
-      transition: border-color .15s;
-      -webkit-appearance: none;
-      appearance: none;
+      display: none;
     }
+    .theme-toggle {
+      width: 40px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); background: var(--card2); cursor: pointer; color: var(--text);
+      font-size: 1.05rem; padding: 4px; flex-shrink: 0;
+      transition: background .15s, border-color .15s, transform .08s;
+    }
+    .theme-toggle:active { transform: scale(.98); }
+    .theme-toggle .icon { display: inline-block; line-height:1; }
     .country-select:focus { border-color: var(--accent); }
     .swap-btn {
       background: rgba(6,182,212,.1);
@@ -527,10 +523,9 @@
     <select id="selectB" class="country-select" title="Right country"></select>
   </div>
   <div class="header-right">
-    <select id="theme-select" class="theme-select" title="Theme" aria-label="Theme selector">
-      <option value="dark">Dark</option>
-      <option value="light">Light</option>
-    </select>
+    <button id="theme-toggle" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+      <span class="icon">🌙</span>
+    </button>
     <a class="doom-clock" href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener" title="Bulletin of the Atomic Scientists — Doomsday Clock">
       <span class="doom-icon">🕛</span>
       <div>
@@ -1462,13 +1457,36 @@ function setTheme(theme) {
 
 // initialize theme selector
 document.addEventListener('DOMContentLoaded', function() {
-  const sel = document.getElementById('theme-select');
+  const btn = document.getElementById('theme-toggle');
   const saved = (function(){ try { return localStorage.getItem('wwmpc_theme'); } catch(e){return null;} })();
   let initial = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-  sel.value = initial;
   setTheme(initial);
-  sel.addEventListener('change', function(){ setTheme(sel.value); });
+  setToggleIcon(initial);
+  if (btn) {
+    btn.addEventListener('click', function(){
+      const next = (localStorage.getItem('wwmpc_theme') === 'light') ? 'dark' : 'light';
+      setTheme(next);
+      setToggleIcon(next);
+    });
+  }
 });
+
+function setToggleIcon(theme) {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const icon = btn.querySelector('.icon');
+  if (theme === 'light') {
+    btn.style.background = '#ffffff';
+    btn.style.borderColor = '#d1d5db';
+    icon.textContent = '☀️';
+    btn.setAttribute('aria-pressed','false');
+  } else {
+    btn.style.background = '#0b2446';
+    btn.style.borderColor = 'rgba(255,255,255,.06)';
+    icon.textContent = '🌙';
+    btn.setAttribute('aria-pressed','true');
+  }
+}
 // Helper: fetch a World Bank JSON URL through a proxy cascade
 // (needed when the page is opened as file://)
 async function fetchWBJson(wbUrl) {
