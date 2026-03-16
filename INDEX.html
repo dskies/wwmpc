@@ -1365,13 +1365,11 @@ function renderNuclear() {
     }
 
     return '<div class="card">' +
-      '<div class="nuke-grid">' +
-        '<div class="nuke-stat">' +
-          '<div class="nuke-num ' + cls + '">' + ref.warheads + '</div>' +
-          '<div class="nuke-lbl">' + country.flag + ' TOTAL WARHEADS</div>' +
-          '<div class="nuke-detail">Deployed: ' + ref.deployed + '</div>' +
-          '<div class="nuke-detail" style="margin-top:4px">' + ref.desc + '</div>' +
-        '</div>' +
+      '<div class="nuke-stat">' +
+        '<div class="nuke-num ' + cls + '">' + ref.warheads + '</div>' +
+        '<div class="nuke-lbl">' + country.flag + ' TOTAL WARHEADS</div>' +
+        '<div class="nuke-detail">Deployed: ' + ref.deployed + '</div>' +
+        '<div class="nuke-detail" style="margin-top:4px">' + ref.desc + '</div>' +
       '</div>' +
       '<div style="margin-top:14px;font-size:.68rem;color:var(--muted);line-height:1.4;text-align:center;">' +
         '<div class="nuke-line">🚀 <span><strong style="color:' + color + '">Land:</strong> ' + ref.land + '</span></div>' +
