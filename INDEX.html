@@ -1435,11 +1435,16 @@ function applyWallSvg(theme) {
     }
     const svg = tpl.replace(/%%BG%%/g, bg).replace(/%%DOT%%/g, dot);
     const data = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-    document.body.style.backgroundImage = 'url("' + data + '")';
-    document.body.style.backgroundColor = bg;
-    document.body.style.backgroundPosition = 'center center';
-    document.body.style.backgroundRepeat = 'no-repeat';
-    document.body.style.backgroundSize = 'cover';
+    const url = 'url("' + data + '")';
+    // Apply to both html and body to ensure full-viewport coverage and fixed attachment
+    [document.documentElement, document.body].forEach(el => {
+      el.style.backgroundImage = url;
+      el.style.backgroundColor = bg;
+      el.style.backgroundPosition = 'center center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundAttachment = 'fixed';
+    });
   });
 }
 
