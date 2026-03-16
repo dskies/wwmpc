@@ -174,3 +174,82 @@ All cache is stored in `localStorage`. The status bar shows a yellow "Cached dat
 ## Disclaimer
 
 > Independent, non-partisan analysis. Budget figures reflect official declarations; actual expenditure may differ per SIPRI/IISS estimates. Nuclear warhead counts are estimates based on open-source intelligence and may not reflect classified totals.
+
+---
+
+## Recent Changes (2026-03-16)
+
+- **Theme toggle (icon-only):** added a sun/moon `#theme-toggle` button in the header that switches light/dark themes. The control uses inline SVG icons, updates `aria-pressed` and `aria-label`, and persists the choice in `localStorage`.
+- **Background handling:** `wall.jpg` is restored as the page background via CSS (`body` rule). The runtime no longer loads or applies external SVG backgrounds.
+- **Accessibility improvements:** small-text contrast variable (`--muted`) tuned per theme; the theme toggle now exposes ARIA attributes and switch role.
+- **Housekeeping:** temporary accessibility test script and local JSON report were removed from the repo; `.gitignore` added to exclude local dev artifacts.
+
+## Theme & Background (how it works)
+
+- The page background is controlled by CSS; `body` uses `wall.jpg` by default: `background: var(--bg) url('wall.jpg') center center / cover fixed no-repeat;`.
+- The theme toggle updates CSS custom properties (colors) only — it does not overwrite the `background-image`. This ensures the image is respected and caching behaves normally.
+- The selected theme is saved in `localStorage` under `wwmpc_theme`. To reset theme from the console run:
+
+```
+localStorage.removeItem('wwmpc_theme');
+location.reload();
+```
+
+## Accessibility (quick notes)
+
+- A lightweight accessibility check was run during development and a small helper was used locally. The repo no longer contains the temporary script or report.
+- For a complete accessibility audit we recommend running the official `axe-core/cli`. Note: `axe-core/cli` requires a ChromeDriver that matches your Chrome version. To install a matching driver locally, run:
+
+```
+npx browser-driver-manager install chrome
+```
+
+Then run the CLI (example):
+
+```
+npx @axe-core/cli https://your-deploy-url/ --save axe-report.json --timeout 120
+```
+
+If you prefer a quick HTML-only check without the headless browser, the repo previously included a small `tools/a11y-check.js` script (removed) that used `cheerio` to verify basic items (html `lang`, `title`, presence of theme toggle, links with text).
+
+## Image optimization (optional)
+
+- To reduce page weight and improve Largest Contentful Paint (LCP), consider converting `wall.jpg` to `wall.webp` and serving with a fallback. Example using `sharp` (Node.js):
+
+```
+npx install sharp
+node -e "require('sharp')('wall.jpg').toFile('wall.webp')"
+```
+
+Then update the HTML/CSS to use `image-set` or conditionally serve `wall.webp` for supported browsers.
+
+## Cleaning local files
+
+- `.gitignore` now excludes `node_modules/`, `package*.json`, local a11y report and editor folders. If you have local dev artifacts to remove, run:
+
+```
+rm -rf node_modules/ a11y-lite-report.json
+```
+
+## How to test locally
+
+- Serve the directory over HTTP to avoid local CORS issues (recommended):
+
+```
+npx serve .
+# or
+python -m http.server
+```
+
+Open the served URL in your browser and test:
+- Theme toggle (header) — click to switch themes and verify persistence on reload.
+- News columns — check that feed counts appear (may require proxies when running as `file://`).
+- Scoreboard & charts — verify Chart.js loads (CDN fallback in place).
+
+## Contributing
+
+- Open a PR with focused changes. For styling changes prefer to update CSS variables and keep component layout stable. If adding new data sources, include a short note in the PR describing the source, CORS strategy, and caching TTL.
+
+---
+
+If you want, I can: convert `wall.jpg` → `wall.webp`, run a full `axe-core` audit (I will install the matching ChromeDriver), or add Open Graph meta tags for better sharing. Which should I do next?
