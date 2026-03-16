@@ -1736,15 +1736,30 @@ async function fetchRSS(rssUrl, listId, countId, dotId) {
 // 13. RSS TREND ANALYSIS
 // ══════════════════════════════════════════════════════════════
 var COUNTRY_ALIASES = {
-  usa:     ['united states','u.s.','america','pentagon','u.s. military','u.s. air force','u.s. navy','u.s. army'],
-  russia:  ['kremlin','russian military','russian armed forces','moscow military'],
-  china:   ["people's liberation army","pla ","chinese military","beijing military","prc military"],
-  uk:      ['british army','royal navy','royal air force','uk ministry of defence','mod uk'],
-  france:  ['french army','french navy','french air force','french military','french armed forces'],
-  germany: ['bundeswehr','german military','german armed forces'],
-  nkorea:  ['north korean','pyongyang','kim jong','dprk'],
-  israel:  ['idf','israel defense forces','israeli military'],
+  usa:        ['united states','u.s.','american','pentagon','white house','u.s. air force','u.s. navy','u.s. army','us air force','us navy','us army','us military','us forces','air force base','dept. of defense'],
+  russia:     ['russian','kremlin','moscow','putin','russian forces','russian military','russian armed','russian navy','russian army'],
+  china:      ['chinese','beijing','prc','south china sea',"people's liberation army",'pla ','xi jinping','taiwan strait'],
+  uk:         ['british','royal navy','royal air force','ministry of defence','uk military','mod uk','united kingdom'],
+  france:     ['french','paris','armée','french military','french navy','french air force'],
+  germany:    ['german','bundeswehr','german military','berlin defense'],
+  india:      ['indian military','indian navy','indian air force','new delhi defense','modi defense'],
+  israel:     ['israeli','idf','israel defense forces','tel aviv','iron dome','israel air force'],
+  ukraine:    ['ukrainian','kyiv','zelenskyy','ukrainian forces','ukrainian military'],
+  nkorea:     ['north korean','pyongyang','kim jong','dprk','north korea missile'],
+  iran:       ['iranian','tehran','irgc','iran military','iran attack','iran nuclear','strait of hormuz'],
+  saudi:      ['saudi','riyadh','saudi military','saudi armed'],
+  turkey:     ['turkish','ankara military','turkish military','turkish armed'],
+  pakistan:   ['pakistani military','islamabad defense','pakistan armed'],
+  taiwan:     ['taiwanese','taipei military','taiwan strait','roc military'],
+  poland:     ['polish military','warsaw defense','polish armed'],
+  australia:  ['australian military','canberra defense',' australian forces'],
+  japan:      ['japanese military','jgsdf','jasdf','jmsdf','japan defense','japan self-defense'],
+  skorea:     ['south korean','rok military','seoul defense','korean military'],
 };
+
+function stripHtml(s) {
+  return s ? s.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ') : '';
+}
 
 function analyzeAndShowTrend() {
   var items = allRSSItems;
@@ -1756,7 +1771,7 @@ function analyzeAndShowTrend() {
   var cntA = 0, cntB = 0;
 
   var texts = items.map(function(it) {
-    return ((it.title || '') + ' ' + (it.description || '')).toLowerCase();
+    return (stripHtml(it.title) + ' ' + stripHtml(it.description)).toLowerCase();
   });
   texts.forEach(function(t) {
     if (t.indexOf(nameA) >= 0 || altA.some(function(k){ return t.indexOf(k) >= 0; })) cntA++;
@@ -1764,11 +1779,12 @@ function analyzeAndShowTrend() {
   });
 
   var el = $('rss-note');
-  if (el && (cntA + cntB > 0)) {
+  if (el) {
     el.innerHTML = '5-proxy cascade &middot; 24h cache &middot; Auto-refresh 30 min &nbsp;&middot;&nbsp;' +
       '<span style="color:var(--usa)">' + stateA.flag + ' ' + stateA.name + ': <strong>' + cntA + '</strong> recent articles</span>' +
       ' &nbsp;|&nbsp; ' +
-      '<span style="color:var(--china)">' + stateB.flag + ' ' + stateB.name + ': <strong>' + cntB + '</strong> recent articles</span>';
+      '<span style="color:var(--china)">' + stateB.flag + ' ' + stateB.name + ': <strong>' + cntB + '</strong> recent articles</span>' +
+      ' <span style="color:var(--muted);font-size:.58rem">(of ' + items.length + ' total)</span>';
   }
 }
 
