@@ -1412,14 +1412,9 @@ function setTheme(theme) {
   if (theme === 'dark') {
     document.documentElement.style.setProperty('--bg', '#050b18');
     document.documentElement.style.setProperty('--card', '#0f172a');
-    // apply dark background color to html/body
-    document.documentElement.style.background = '#050b18';
-    document.body.style.background = '#050b18';
   } else {
     document.documentElement.style.setProperty('--bg', '#ffffff');
     document.documentElement.style.setProperty('--card', '#f8fafc');
-    document.documentElement.style.background = '#ffffff';
-    document.body.style.background = '#ffffff';
   }
   try { localStorage.setItem('wwmpc_theme', theme); } catch(e){}
 }
