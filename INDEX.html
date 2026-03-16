@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>World Wide Military Power Comparison</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23050b18'/%3E%3Cline x1='7' y1='5' x2='25' y2='27' stroke='%233b82f6' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='4' y1='11' x2='11' y2='4' stroke='%233b82f6' stroke-width='2.2' stroke-linecap='round'/%3E%3Cline x1='25' y1='5' x2='7' y2='27' stroke='%23ef4444' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='28' y1='11' x2='21' y2='4' stroke='%23ef4444' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%2306b6d4'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="wall.jpg">
   <!--
     Chart.js: loads from primary CDN (jsDelivr), then falls back to cdnjs, then unpkg.
     Uses major version @4 so patch updates are automatic.
@@ -523,8 +524,8 @@
     <select id="selectB" class="country-select" title="Right country"></select>
   </div>
   <div class="header-right">
-    <button id="theme-toggle" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
-      <span class="icon">🌙</span>
+    <button id="theme-toggle" class="theme-toggle" role="switch" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+      <span class="icon" aria-hidden="true">🌙</span>
     </button>
     <a class="doom-clock" href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener" title="Bulletin of the Atomic Scientists — Doomsday Clock">
       <span class="doom-icon">🕛</span>
@@ -1412,9 +1413,11 @@ function setTheme(theme) {
   if (theme === 'dark') {
     document.documentElement.style.setProperty('--bg', '#050b18');
     document.documentElement.style.setProperty('--card', '#0f172a');
+    document.documentElement.style.setProperty('--muted', '#9fb0c8');
   } else {
     document.documentElement.style.setProperty('--bg', '#ffffff');
     document.documentElement.style.setProperty('--card', '#f8fafc');
+    document.documentElement.style.setProperty('--muted', '#475569');
   }
   try { localStorage.setItem('wwmpc_theme', theme); } catch(e){}
 }
@@ -1442,13 +1445,15 @@ function setToggleIcon(theme) {
   if (theme === 'light') {
     btn.style.background = '#ffffff';
     btn.style.borderColor = '#d1d5db';
-    icon.textContent = '☀️';
+    icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 4V2M12 22v-2M4.22 4.22L2.81 2.81M21.19 21.19l-1.41-1.41M4 12H2m20 0h-2M4.22 19.78l-1.41 1.41M21.19 2.81l-1.41 1.41" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>';
     btn.setAttribute('aria-pressed','false');
+    btn.setAttribute('aria-label','Switch to dark theme');
   } else {
     btn.style.background = '#0b2446';
     btn.style.borderColor = 'rgba(255,255,255,.06)';
-    icon.textContent = '🌙';
+    icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" fill="currentColor"/></svg>';
     btn.setAttribute('aria-pressed','true');
+    btn.setAttribute('aria-label','Switch to light theme');
   }
 }
 // Helper: fetch a World Bank JSON URL through a proxy cascade
