@@ -1783,12 +1783,12 @@ var RSS_PROXIES = [
     var items = parseXMLFeed(t); if (!items.length) throw new Error('codetabs parse fail');
     return { items: items, proxy: 'p1' };
   },
-  // p2 — thingproxy (reliable, works from file://)
+  // p2 — htmldriven cors proxy
   async function(url) {
-    var r = await fetchTimeout('https://thingproxy.freeboard.io/fetch/' + url, 12000);
-    if (!r.ok) throw new Error('thingp ' + r.status);
-    var t = await r.text(); if (t.length < 100) throw new Error('thingp empty');
-    var items = parseXMLFeed(t); if (!items.length) throw new Error('thingp parse fail');
+    var r = await fetchTimeout('https://cors-proxy.htmldriven.com/?url=' + encodeURIComponent(url), 12000);
+    if (!r.ok) throw new Error('htmldriven ' + r.status);
+    var t = await r.text(); if (t.length < 100) throw new Error('htmldriven empty');
+    var items = parseXMLFeed(t); if (!items.length) throw new Error('htmldriven parse fail');
     return { items: items, proxy: 'p2' };
   },
   // p2b — corsproxy.io
@@ -1818,7 +1818,7 @@ var RSS_PROXIES = [
   },
   // p5 — rss2json free tier (last resort, works for some feeds)
   async function(url) {
-    var r = await fetchTimeout('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url) + '&count=12', 10000);
+    var r = await fetchTimeout('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url), 10000);
     if (!r.ok) throw new Error('rss2j ' + r.status);
     var d = await r.json();
     if (d.status !== 'ok') throw new Error('rss2j: ' + (d.message || 'err'));
