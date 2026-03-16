@@ -949,7 +949,7 @@ var GFP_PROXIES = [
 async function fetchHTMLviaProxy(url) {
   for (var i = 0; i < GFP_PROXIES.length; i++) {
     try {
-      var res = await fetchTimeout(GFP_PROXIES[i](url), 20000);
+      var res = await fetchTimeout(GFP_PROXIES[i](url), 8000);
       if (!res.ok) continue;
       var html = await res.text();
       if (html && html.length > 1000) return html;
@@ -957,7 +957,7 @@ async function fetchHTMLviaProxy(url) {
   }
   // Final fallback: allorigins /get returns a JSON wrapper {contents: '...'}
   try {
-    var rj = await fetchTimeout('https://api.allorigins.win/get?url=' + encodeURIComponent(url), 20000);
+    var rj = await fetchTimeout('https://api.allorigins.win/get?url=' + encodeURIComponent(url), 8000);
     if (rj.ok) {
       var jj = await rj.json();
       if (jj && jj.contents && jj.contents.length > 1000) return jj.contents;
@@ -1107,17 +1107,24 @@ async function fetchGFPCountry(country) {
       rank:'—', pwrIdx:'—', budget:'—', personnel:'—', aircraft:'—',
       fighters:'—', navy:'—', carriers:'—', subs:'—', tanks:'—' };
   }
-  var cKey = 'gfp_v5_' + country.code;
+  var cKey = 'gfp_v6_' + country.code;
   // 1. Try live scrape
   var html = await fetchHTMLviaProxy(
     'https://www.globalfirepower.com/country-military-strength-detail.php?country_id=' + country.gfp
   );
   if (html) {
     var data = parseGFPPage(html);
-    if (data && (data.rank || data.pwrIdx || data.personnel)) {
-      data.country = country;
-      saveCache(cKey, data);
-      return data;
+    // Require meaningful data (personnel + rank or pwrIdx) to consider it valid
+    if (data && data.personnel && (data.rank || data.pwrIdx)) {
+      // Fill any null fields from GFP_FALLBACK so display is always complete
+      var refFill = GFP_FALLBACK[country.code] || {};
+      var merged = {};
+      ['rank','pwrIdx','budget','personnel','aircraft','fighters','navy','carriers','subs','tanks'].forEach(function(k) {
+        merged[k] = data[k] || refFill[k] || null;
+      });
+      merged.country = country;
+      saveCache(cKey, merged);
+      return merged;
     }
   }
   // 2. Try localStorage cache (72 h)
