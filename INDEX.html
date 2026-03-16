@@ -484,7 +484,7 @@
     <div class="s-item"><div class="dot loading" id="dot-gfp"></div><span>GlobalFirepower</span></div>
     <div class="s-item"><div class="dot loading" id="dot-wb"></div><span>World Bank</span></div>
     <div class="s-item"><div class="dot loading" id="dot-bd"></div><span>Breaking Defense</span></div>
-    <div class="s-item"><div class="dot loading" id="dot-do"></div><span>The War Zone</span></div>
+    <div class="s-item"><div class="dot loading" id="dot-do"></div><span>USNI News</span></div>
     <div class="s-item"><div class="dot loading" id="dot-af"></div><span>Air &amp; Space Forces</span></div>
     <div class="s-item" id="cache-row" style="display:none;">
       <div class="dot cache"></div><span id="cache-label" style="color:var(--yellow)">Cached data</span>
@@ -546,7 +546,7 @@
   <section>
     <div class="section-label">◆ LIVE DEFENSE NEWS — RSS FEEDS
       <a class="src-link" href="https://breakingdefense.com/" target="_blank" rel="noopener">↗ Breaking Defense</a>
-      <a class="src-link" href="https://www.thedrive.com/the-war-zone" target="_blank" rel="noopener">↗ The War Zone</a>
+      <a class="src-link" href="https://news.usni.org/" target="_blank" rel="noopener">↗ USNI News</a>
       <a class="src-link" href="https://www.airandspaceforces.com/" target="_blank" rel="noopener">↗ Air &amp; Space Forces</a>
     </div>
     <div class="news-wrapper">
@@ -561,7 +561,7 @@
 
       <div class="news-card">
         <div class="news-head">
-          <span class="news-src">THE WAR ZONE</span>
+          <span class="news-src">USNI NEWS</span>
           <span class="news-count" id="count-do"><span class="spin"></span></span>
         </div>
         <div class="news-list" id="list-do"><div class="news-empty">Loading…</div></div>
@@ -577,8 +577,8 @@
 
     </div>
     <p style="font-size:.62rem;color:var(--muted);margin-top:10px;text-align:center;" id="rss-note">
-      6-proxy cascade: codetabs → thingproxy → corsproxy.io → allorigins/raw → allorigins/get → rss2json · 24h local cache · Auto-refresh every 30 min
-      &nbsp;· Sources: Breaking Defense · The War Zone · Air &amp; Space Forces Magazine
+      5-proxy cascade: corsproxy.io → codetabs → thingproxy → allorigins/get → rss2json · 24h local cache · Auto-refresh every 30 min
+      &nbsp;· Sources: Breaking Defense · USNI News · Air &amp; Space Forces Magazine
     </p>
   </section>
 
@@ -607,7 +607,7 @@
   <a href="https://www.sipri.org/publications/yearbooks" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">SIPRI Yearbook 2025</a> ·
   <a href="https://www.armscontrol.org/" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">Arms Control Association</a> ·
   <a href="https://breakingdefense.com/" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">Breaking Defense</a> ·
-  <a href="https://www.thedrive.com/the-war-zone" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">The War Zone</a> ·
+  <a href="https://news.usni.org/" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">USNI News</a> ·
   <a href="https://www.airandspaceforces.com/" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">Air &amp; Space Forces Magazine</a>
   <div style="margin-top:10px;opacity:.45;">
     Independent, non-partisan analysis · Budget figures reflect official declarations; actual expenditure may differ per SIPRI/IISS estimates
@@ -851,7 +851,6 @@ function waitForChart(cb, n) {
 // 7. GFP SCRAPING
 // ══════════════════════════════════════════════════════════════
 var GFP_PROXIES = [
-  function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
   function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
   function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
   function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; },
@@ -1795,7 +1794,7 @@ async function loadComparison() {
     fetchBothGFP(),
     fetchWorldBank(),
     fetchRSS('https://breakingdefense.com/feed/',              'list-bd', 'count-bd', 'bd'),
-    fetchRSS('https://www.thewarzone.com/feed/',                 'list-do', 'count-do', 'do'),
+    fetchRSS('https://news.usni.org/feed',                       'list-do', 'count-do', 'do'),
     fetchRSS('https://www.airandspaceforces.com/feed/',         'list-af', 'count-af', 'af'),
     // kept for trend analysis even if some feeds fail
 
