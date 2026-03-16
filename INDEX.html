@@ -455,6 +455,21 @@
       -webkit-appearance: none;
       appearance: none;
     }
+    .theme-select {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .72rem;
+      cursor: pointer;
+      min-width: 110px;
+      outline: none;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
     .country-select:focus { border-color: var(--accent); }
     .swap-btn {
       background: rgba(6,182,212,.1);
@@ -512,6 +527,10 @@
     <select id="selectB" class="country-select" title="Right country"></select>
   </div>
   <div class="header-right">
+    <select id="theme-select" class="theme-select" title="Theme" aria-label="Theme selector">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
     <a class="doom-clock" href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener" title="Bulletin of the Atomic Scientists — Doomsday Clock">
       <span class="doom-icon">🕛</span>
       <div>
@@ -1392,6 +1411,64 @@ function renderNuclear() {
 // ══════════════════════════════════════════════════════════════
 // 11. WORLD BANK
 // ══════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════=
+// THEME / WALL.SVG HANDLING
+// ═════════════════════════════════════════════════════════════=
+const WALL_SVG_URL = 'wall.svg';
+let _wallTpl = null;
+async function loadWallTemplate() {
+  if (_wallTpl !== null) return _wallTpl;
+  try {
+    const r = await fetch(WALL_SVG_URL + '?t=' + Date.now());
+    _wallTpl = await r.text();
+  } catch (e) {
+    console.warn('Could not load wall.svg', e);
+    _wallTpl = null;
+  }
+  return _wallTpl;
+}
+
+function applyWallSvg(theme) {
+  const isDark = theme === 'dark';
+  const bg = isDark ? '#05102a' : '#ffffff';
+  const dot = isDark ? '#ef4444' : '#1e40af';
+  loadWallTemplate().then(tpl => {
+    if (!tpl) {
+      // fallback: keep existing CSS background color
+      document.body.style.background = (isDark ? getComputedStyle(document.documentElement).getPropertyValue('--bg') : bg) + ' center center / cover fixed no-repeat';
+      return;
+    }
+    const svg = tpl.replace(/%%BG%%/g, bg).replace(/%%DOT%%/g, dot);
+    const data = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    document.body.style.backgroundImage = 'url("' + data + '")';
+    document.body.style.backgroundColor = bg;
+    document.body.style.backgroundPosition = 'center center';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundSize = 'cover';
+  });
+}
+
+function setTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.style.setProperty('--bg', '#050b18');
+    document.documentElement.style.setProperty('--card', '#0f172a');
+  } else {
+    document.documentElement.style.setProperty('--bg', '#ffffff');
+    document.documentElement.style.setProperty('--card', '#f8fafc');
+  }
+  applyWallSvg(theme);
+  try { localStorage.setItem('wwmpc_theme', theme); } catch(e){}
+}
+
+// initialize theme selector
+document.addEventListener('DOMContentLoaded', function() {
+  const sel = document.getElementById('theme-select');
+  const saved = (function(){ try { return localStorage.getItem('wwmpc_theme'); } catch(e){return null;} })();
+  let initial = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  sel.value = initial;
+  setTheme(initial);
+  sel.addEventListener('change', function(){ setTheme(sel.value); });
+});
 // Helper: fetch a World Bank JSON URL through a proxy cascade
 // (needed when the page is opened as file://)
 async function fetchWBJson(wbUrl) {
