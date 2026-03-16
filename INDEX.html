@@ -99,6 +99,43 @@
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
 
+    /* ── DOOMSDAY CLOCK ── */
+    .doom-clock {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.35);
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .doom-clock:hover { background: rgba(239,68,68,.18); }
+    .doom-icon { font-size: .88rem; line-height:1; }
+    .doom-label { font-size: .54rem; color: var(--muted); letter-spacing: 1px; line-height:1.3; }
+    .doom-value { font-family: 'Courier New',monospace; font-size: .85rem; font-weight: 900; color: #f87171; line-height:1; }
+
+    /* ── WORLDOMETERS BAR ── */
+    #wm-bar {
+      display: flex; flex-wrap: wrap; gap: 6px 18px;
+      margin-bottom: 18px;
+      padding: 9px 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.66rem;
+      color: var(--muted);
+      align-items: center;
+    }
+    .wm-item { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+    .wm-lbl { font-size: .58rem; letter-spacing: 1px; }
+    .wm-val { font-family: 'Courier New',monospace; font-size: .82rem; font-weight: 700; color: var(--text); }
+    .wm-val.births { color: #4ade80; }
+    .wm-val.deaths { color: #f87171; }
+    .wm-val.pop    { color: var(--accent); }
+    .wm-val.co2    { color: var(--yellow); }
+    .wm-src { margin-left: auto; font-size: .56rem; opacity: .55; }
+
     .refresh-btn {
       background: transparent;
       border: 1px solid var(--accent);
@@ -472,6 +509,13 @@
     <select id="selectB" class="country-select" title="Right country"></select>
   </div>
   <div class="header-right">
+    <a class="doom-clock" href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener" title="Bulletin of the Atomic Scientists — Doomsday Clock">
+      <span class="doom-icon">🕛</span>
+      <div>
+        <div class="doom-label">DOOMSDAY CLOCK</div>
+        <div class="doom-value" id="doom-value">89s to midnight</div>
+      </div>
+    </a>
     <span class="live-badge">LIVE</span>
     <span id="clock">--:--:--</span>
     <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">⟳ REFRESH</button>
@@ -480,6 +524,16 @@
 
 <!-- ═══════════════════════ MAIN ═══════════════════════ -->
 <main>
+
+  <!-- WORLDOMETERS LIVE STATS -->
+  <div id="wm-bar">
+    <div class="wm-item"><span class="wm-lbl">🌍 WORLD POPULATION</span><span class="wm-val pop" id="wm-pop">—</span></div>
+    <div class="wm-item"><span class="wm-lbl">🟢 BIRTHS TODAY</span><span class="wm-val births" id="wm-births">—</span></div>
+    <div class="wm-item"><span class="wm-lbl">🔴 DEATHS TODAY</span><span class="wm-val deaths" id="wm-deaths">—</span></div>
+    <div class="wm-item"><span class="wm-lbl">🌫 CO₂ EMITTED TODAY (t)</span><span class="wm-val co2" id="wm-co2">—</span></div>
+    <div class="wm-item"><span class="wm-lbl">💰 MILITARY SPEND TODAY (USD)</span><span class="wm-val" style="color:#a78bfa" id="wm-mil">—</span></div>
+    <a class="wm-src" href="https://www.worldometers.info/" target="_blank" rel="noopener">↗ worldometers.info (estimated live)</a>
+  </div>
 
   <!-- STATUS BAR -->
   <div id="status-bar">
@@ -785,7 +839,7 @@ let allRSSItems = [];
 let radarInst, forcesInst, budgetInst, projectionInst;
 
 // ══════════════════════════════════════════════════════════════
-// 4. CLOCK + HEADER DATE
+// 4. CLOCK + HEADER DATE + WORLDOMETERS COUNTERS
 // ══════════════════════════════════════════════════════════════
 function tickClock() {
   const c = $('clock');
@@ -793,6 +847,40 @@ function tickClock() {
 }
 setInterval(tickClock, 1000);
 tickClock();
+
+// ── Worldometers live estimation ──────────────────────────────
+// Baselines: Jan 1 2026 00:00:00 UTC (UN / Worldometers estimates)
+(function initWorldometers() {
+  var POP_JAN1_2026  = 8215000000;   // world population baseline
+  var BIRTH_PER_SEC  = 4.46;         // ~385,000/day
+  var DEATH_PER_SEC  = 1.91;         // ~165,000/day
+  var CO2_PER_SEC    = 1354;         // ~117M t/day (IEA 2025: ~43Gt/yr)
+  var MIL_PER_SEC    = 60000;        // ~$2.4T/yr global mil spend (SIPRI)
+
+  var BASE = Date.UTC(2026, 0, 1, 0, 0, 0); // Jan 1 2026 00:00 UTC
+
+  function fmt(n) {
+    return Math.floor(n).toLocaleString('en-US');
+  }
+
+  function tickWM() {
+    var now    = Date.now();
+    var secYear = (now - BASE) / 1000;
+    // Seconds elapsed since midnight UTC today
+    var d = new Date();
+    var midnight = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    var secToday = (now - midnight) / 1000;
+
+    var pop    = $('wm-pop');    if (pop)    pop.textContent    = fmt(POP_JAN1_2026 + secYear * (BIRTH_PER_SEC - DEATH_PER_SEC));
+    var births = $('wm-births'); if (births) births.textContent = fmt(secToday * BIRTH_PER_SEC);
+    var deaths = $('wm-deaths'); if (deaths) deaths.textContent = fmt(secToday * DEATH_PER_SEC);
+    var co2    = $('wm-co2');    if (co2)    co2.textContent    = fmt(secToday * CO2_PER_SEC);
+    var mil    = $('wm-mil');    if (mil)    mil.textContent    = '$' + fmt(secToday * MIL_PER_SEC);
+  }
+
+  tickWM();
+  setInterval(tickWM, 1000);
+})();
 
 (function setHeaderDate() {
   const el = $('header-sub');
