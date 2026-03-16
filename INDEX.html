@@ -894,33 +894,54 @@ function gfpVal(html) {
 function parseGFPPage(html) {
   if (!html) return null;
   var h = html.replace(/\r?\n/g, ' ');
+
+  // Tag-boundary-aware extractor: crosses 1-3 tag pairs (LAZY = finds closest match first).
+  // [^<]* stops at tag boundaries; {1,3}? lazily tries fewest crossings first.
+  function cellVal(labelRe, minLen) {
+    minLen = minLen || 1;
+    var m = h.match(new RegExp(
+      labelRe.source + '[^<]*(?:<[^>]+>[^<]*){1,3}?([\\d,]{' + minLen + ',})', 'i'
+    ));
+    if (!m) return null;
+    var v = m[m.length - 1];
+    if (/^202\d$/.test(v)) return null; // reject bare year values (2020-2029)
+    return /\d/.test(v) ? v.trim() : null;
+  }
+
+  // pwrIdx: distinctive 0.XXXX decimal format
+  var pwrIdx = null;
+  var pm = h.match(/PwrIndx[^0-9]{0,100}([0-9]\.[0-9]{4,5})/i) ||
+           h.match(/Power\s*Index[^0-9]{0,100}([0-9]\.[0-9]{4,5})/i) ||
+           h.match(/\b(0\.[0-9]{4,5})\b/);
+  if (pm) pwrIdx = pm[1];
+
+  // rank: #N of M — validates 1-145
+  var rank = null;
+  var rm = h.match(/#\s*(\d{1,3})\s*(?:of|\/)\s*\d{2,3}/i) ||
+           h.match(/\brank(?:ed|ing)?\b[^<>]{0,20}#?\s*(\d{1,3})\b/i);
+  if (rm && parseInt(rm[1]) <= 145) rank = rm[1];
+
+  // budget: lazy window looking for $X Billion/Million after "Defense Budget"
+  var budget = null;
+  var bm = h.match(/Defense\s*Budget.{0,600}?(\$[\d.,]+\s*(?:Billion|Million|Trillion)[^<,;]{0,15})/i) ||
+           h.match(/Military\s*Budget.{0,400}?(\$[\d.,]+\s*(?:Billion|Million)[^<,;]{0,15})/i);
+  if (bm) budget = bm[1];
+
   return {
-    rank:      gfpVal(h, /(?:Rank|RANK)[^\d]*#?\s*(\d+)\s*(?:of|\/)\s*\d+/i,
-                        /ranking[^\d]*(\d+)[^\d]*of\s*\d+/i,
-                        /#\s*(\d+)\s*of\s*145/i,
-                        /Global\s*Firepower[^#\d]*#?(\d+)/i),
-    pwrIdx:    gfpVal(h, /PwrIndx[^0-9]*([0-9]+\.[0-9]{4,5})/i,
-                        /Power\s*Index[^0-9]*([0-9]+\.[0-9]{4,5})/i,
-                        /([0-9]+\.[0-9]{4,5})[^0-9]*(?:PwrIndx|Power\s*Index)/i),
-    personnel: gfpVal(h, /Active\s*(?:Military\s*)?Personnel[^\d]*([\d,]{5,})/i,
-                        /([\d,]{5,})[^\d]*Active\s*(?:Military\s*)?Personnel/i,
-                        /Total\s*(?:Military\s*)?Personnel[^\d]*([\d,]{5,})/i),
-    aircraft:  gfpVal(h, /Total\s*Aircraft[^\d]*([\d,]{3,})/i,
-                        /([\d,]{3,})[^\d]*Total\s*Aircraft/i),
-    fighters:  gfpVal(h, /Fighter[^\d]*([\d,]{2,})/i,
-                        /([\d,]{2,})[^\d]*Fighter/i),
-    attack:    gfpVal(h, /Attack[^\d]*([\d,]{2,})/i),
-    tanks:     gfpVal(h, /Tanks?[^\d]*([\d,]{3,})/i,
-                        /([\d,]{3,})[^\d]*Tanks?/i),
-    navy:      gfpVal(h, /Total\s*Naval[^\d]*([\d,]{2,})/i,
-                        /Naval\s*(?:Strength|Assets)[^\d]*([\d,]{2,})/i),
-    carriers:  gfpVal(h, /Aircraft\s*Carrier[^\d]*([\d,]+)/i,
-                        /Carrier[^\d]*([\d,]+)/i),
-    subs:      gfpVal(h, /Submarine[^\d]*([\d,]{1,})/i,
-                        /([\d,]{1,})[^\d]*Submarine/i),
-    budget:    gfpVal(h, /Defense\s*Budget[^<>]*?>([^<]{3,30})/i,
-                        /Military\s*Budget[^<>]*?>([^<]{3,20})/i,
-                        /Defense\s*Budget[^\$]*?(\$[\d.,\s]+(?:Billion|Million|B|M)[^<,;]{0,15})/i),
+    rank:      rank,
+    pwrIdx:    pwrIdx,
+    budget:    budget,
+    personnel: cellVal(/Active\s*(?:Military\s*)?Personnel/, 5) ||
+               cellVal(/Total\s*Military\s*Personnel/, 5),
+    aircraft:  cellVal(/Total\s*Aircraft/, 3),
+    fighters:  cellVal(/Fighter(?:[/ ]*Attack)?\s*Aircraft/, 2) ||
+               cellVal(/Fighters?\b(?!\s*and)/, 2),
+    attack:    cellVal(/Attack\s*Aircraft/, 2),
+    tanks:     cellVal(/Tanks?\b/, 2),
+    navy:      cellVal(/Total\s*Naval/, 2) ||
+               cellVal(/Naval\s*(?:Strength|Assets)/, 2),
+    carriers:  cellVal(/Aircraft\s*Carrier/, 1),
+    subs:      cellVal(/Submarines?/, 1),
   };
 }
 
