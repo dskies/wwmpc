@@ -851,9 +851,9 @@ function waitForChart(cb, n) {
 // 7. GFP SCRAPING
 // ══════════════════════════════════════════════════════════════
 var GFP_PROXIES = [
-  function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
   function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
   function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; },
+  // allorigins/get is handled as final fallback in fetchHTMLviaProxy (always CORS-safe)
 ];
 
 async function fetchHTMLviaProxy(url) {
