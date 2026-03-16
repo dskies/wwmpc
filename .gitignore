@@ -1,0 +1,10 @@
+node_modules/
+package-lock.json
+package.json
+a11y-lite-report.json
+tools/a11y-check.js
+/.vscode/
+/.idea/
+*.log
+dist/
+coverage/
