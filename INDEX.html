@@ -484,7 +484,7 @@
     <div class="s-item"><div class="dot loading" id="dot-gfp"></div><span>GlobalFirepower</span></div>
     <div class="s-item"><div class="dot loading" id="dot-wb"></div><span>World Bank</span></div>
     <div class="s-item"><div class="dot loading" id="dot-bd"></div><span>Breaking Defense</span></div>
-    <div class="s-item"><div class="dot loading" id="dot-do"></div><span>Defense One</span></div>
+    <div class="s-item"><div class="dot loading" id="dot-do"></div><span>The War Zone</span></div>
     <div class="s-item"><div class="dot loading" id="dot-af"></div><span>Air &amp; Space Forces</span></div>
     <div class="s-item" id="cache-row" style="display:none;">
       <div class="dot cache"></div><span id="cache-label" style="color:var(--yellow)">Cached data</span>
@@ -577,7 +577,7 @@
 
     </div>
     <p style="font-size:.62rem;color:var(--muted);margin-top:10px;text-align:center;" id="rss-note">
-      5-proxy cascade: codetabs → thingproxy → allorigins/raw → allorigins/get → rss2json · 24h local cache · Auto-refresh every 30 min
+      6-proxy cascade: codetabs → thingproxy → corsproxy.io → allorigins/raw → allorigins/get → rss2json · 24h local cache · Auto-refresh every 30 min
       &nbsp;· Sources: Breaking Defense · The War Zone · Air &amp; Space Forces Magazine
     </p>
   </section>
@@ -851,9 +851,10 @@ function waitForChart(cb, n) {
 // 7. GFP SCRAPING
 // ══════════════════════════════════════════════════════════════
 var GFP_PROXIES = [
+  function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+  function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
   function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
   function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; },
-  function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
 ];
 
 async function fetchHTMLviaProxy(url) {
@@ -894,25 +895,31 @@ function parseGFPPage(html) {
   var h = html.replace(/\r?\n/g, ' ');
   return {
     rank:      gfpVal(h, /(?:Rank|RANK)[^\d]*#?\s*(\d+)\s*(?:of|\/)\s*\d+/i,
-                        /ranking[^<>]*?(\d+)[^<>]*?of\s*\d+/i),
-    pwrIdx:    gfpVal(h, /Power\s*Index[^<>]*?([0-9]\.[0-9]{3,5})/i,
-                        /PwrIndx[^<>]*?([0-9]\.[0-9]{3,5})/i,
-                        /([0-9]\.[0-9]{3,5})[^<>]*?Power\s*Index/i),
-    personnel: gfpVal(h, /Active\s*(?:Military\s*)?Personnel[^<>]*?>([\d,]+)/i,
-                        /([\d,]{5,})<\/[^>]+>\s*Active\s*Personnel/i),
-    aircraft:  gfpVal(h, /Total\s*Aircraft[^<>]*?>([\d,]+)/i,
-                        /([\d,]+)<\/[^>]+>\s*Total\s*Aircraft/i),
-    fighters:  gfpVal(h, /Fighter[^<>]*?>([\d,]+)/i),
-    attack:    gfpVal(h, /Attack[^<>]*?>([\d,]+)/i),
-    tanks:     gfpVal(h, /Tanks?[^<>]*?>([\d,]+)/i,
-                        /([\d,]+)<\/[^>]+>\s*Tank/i),
-    navy:      gfpVal(h, /Total\s*Naval[^<>]*?>([\d,]+)/i,
-                        /Naval\s*(?:Strength|Assets)[^<>]*?>([\d,]+)/i),
-    carriers:  gfpVal(h, /Aircraft\s*Carrier[^<>]*?>([\d,]+)/i,
-                        /Carrier[^<>{]+>([\d,]+)/i),
-    subs:      gfpVal(h, /Submarine[^<>]*?>([\d,]+)/i),
+                        /ranking[^\d]*(\d+)[^\d]*of\s*\d+/i,
+                        /#\s*(\d+)\s*of\s*145/i,
+                        /Global\s*Firepower[^#\d]*#?(\d+)/i),
+    pwrIdx:    gfpVal(h, /PwrIndx[^0-9]*([0-9]+\.[0-9]{4,5})/i,
+                        /Power\s*Index[^0-9]*([0-9]+\.[0-9]{4,5})/i,
+                        /([0-9]+\.[0-9]{4,5})[^0-9]*(?:PwrIndx|Power\s*Index)/i),
+    personnel: gfpVal(h, /Active\s*(?:Military\s*)?Personnel[^\d]*([\d,]{5,})/i,
+                        /([\d,]{5,})[^\d]*Active\s*(?:Military\s*)?Personnel/i,
+                        /Total\s*(?:Military\s*)?Personnel[^\d]*([\d,]{5,})/i),
+    aircraft:  gfpVal(h, /Total\s*Aircraft[^\d]*([\d,]{3,})/i,
+                        /([\d,]{3,})[^\d]*Total\s*Aircraft/i),
+    fighters:  gfpVal(h, /Fighter[^\d]*([\d,]{2,})/i,
+                        /([\d,]{2,})[^\d]*Fighter/i),
+    attack:    gfpVal(h, /Attack[^\d]*([\d,]{2,})/i),
+    tanks:     gfpVal(h, /Tanks?[^\d]*([\d,]{3,})/i,
+                        /([\d,]{3,})[^\d]*Tanks?/i),
+    navy:      gfpVal(h, /Total\s*Naval[^\d]*([\d,]{2,})/i,
+                        /Naval\s*(?:Strength|Assets)[^\d]*([\d,]{2,})/i),
+    carriers:  gfpVal(h, /Aircraft\s*Carrier[^\d]*([\d,]+)/i,
+                        /Carrier[^\d]*([\d,]+)/i),
+    subs:      gfpVal(h, /Submarine[^\d]*([\d,]{1,})/i,
+                        /([\d,]{1,})[^\d]*Submarine/i),
     budget:    gfpVal(h, /Defense\s*Budget[^<>]*?>([^<]{3,30})/i,
-                        /Military\s*Budget[^<>]*?>([^<]{3,20})/i),
+                        /Military\s*Budget[^<>]*?>([^<]{3,20})/i,
+                        /Defense\s*Budget[^\$]*?(\$[\d.,\s]+(?:Billion|Million|B|M)[^<,;]{0,15})/i),
   };
 }
 
@@ -1024,7 +1031,7 @@ async function fetchBothGFP() {
                   !gfpDataB._fallback && !gfpDataB._ref && !gfpDataB._cached;
   var isCached  = gfpDataA._cached  || gfpDataB._cached;
   var isRef     = (gfpDataA._ref    || gfpDataB._ref) && !isCached;
-  setDot('gfp', isLive ? 'ok' : isCached ? 'cache' : isRef ? 'cache' : 'error');
+  setDot('gfp', isLive ? 'gfp-ok' : isCached ? 'cache' : isRef ? 'gfp-ok' : 'error');
   if (isCached) showCacheRow('GFP cached data');
   if (isRef)    showCacheRow('GFP reference data (2026)');
 }
@@ -1279,6 +1286,11 @@ async function fetchWBJson(wbUrl) {
   try {
     var r2 = await fetchTimeout('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(wbUrl), 25000);
     if (r2.ok) { var t2 = await r2.text(); return JSON.parse(t2); }
+  } catch(e) {}
+  // 2b. corsproxy.io
+  try {
+    var r2b = await fetchTimeout('https://corsproxy.io/?' + encodeURIComponent(wbUrl), 25000);
+    if (r2b.ok) { var t2b = await r2b.text(); return JSON.parse(t2b); }
   } catch(e) {}
   // 3. allorigins /get  (response is {contents:'<json string>'})
   try {
@@ -1539,25 +1551,6 @@ function buildProjectionChart(years, vA, vB) {
           return c.parsed.y == null ? null
             : ' ' + c.dataset.label + ': $' + (c.parsed.y / 1e9).toFixed(1) + 'B';
         } } },
-        // Shade projected region using a custom beforeDraw plugin
-        projShade: {
-          id: 'projShade',
-          beforeDraw: function(chart) {
-            var ctx2 = chart.ctx;
-            var xScale = chart.scales.x;
-            var yScale = chart.scales.y;
-            if (!xScale || !yScale) return;
-            // Find pixel x of the first projected label
-            var startIdx = histCount - 1;
-            if (startIdx < 0 || startIdx >= chart.data.labels.length) return;
-            var x0 = xScale.getPixelForValue(chart.data.labels[startIdx]);
-            var x1 = xScale.right;
-            ctx2.save();
-            ctx2.fillStyle = 'rgba(100,116,139,0.07)';
-            ctx2.fillRect(x0, yScale.top, x1 - x0, yScale.bottom - yScale.top);
-            ctx2.restore();
-          }
-        }
       },
       scales: {
         x: { ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
@@ -1679,6 +1672,14 @@ var RSS_PROXIES = [
     var items = parseXMLFeed(t); if (!items.length) throw new Error('thingp parse fail');
     return { items: items, proxy: 'p2' };
   },
+  // p2b — corsproxy.io
+  async function(url) {
+    var r = await fetchTimeout('https://corsproxy.io/?' + encodeURIComponent(url), 12000);
+    if (!r.ok) throw new Error('corsproxy ' + r.status);
+    var t = await r.text(); if (t.length < 100) throw new Error('corsproxy empty');
+    var items = parseXMLFeed(t); if (!items.length) throw new Error('corsproxy parse fail');
+    return { items: items, proxy: 'p2b' };
+  },
   // p3 — allorigins/raw
   async function(url) {
     var r = await fetchTimeout('https://api.allorigins.win/raw?url=' + encodeURIComponent(url), 12000);
@@ -1794,7 +1795,7 @@ async function loadComparison() {
     fetchBothGFP(),
     fetchWorldBank(),
     fetchRSS('https://breakingdefense.com/feed/',              'list-bd', 'count-bd', 'bd'),
-    fetchRSS('https://www.thedrive.com/the-war-zone/rss',       'list-do', 'count-do', 'do'),
+    fetchRSS('https://www.thewarzone.com/feed/',                 'list-do', 'count-do', 'do'),
     fetchRSS('https://www.airandspaceforces.com/feed/',         'list-af', 'count-af', 'af'),
     // kept for trend analysis even if some feeds fail
 
