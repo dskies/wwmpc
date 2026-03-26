@@ -249,7 +249,3 @@ Open the served URL in your browser and test:
 ## Contributing
 
 - Open a PR with focused changes. For styling changes prefer to update CSS variables and keep component layout stable. If adding new data sources, include a short note in the PR describing the source, CORS strategy, and caching TTL.
-
----
-
-If you want, I can: convert `wall.jpg` → `wall.webp`, run a full `axe-core` audit (I will install the matching ChromeDriver), or add Open Graph meta tags for better sharing. Which should I do next?
